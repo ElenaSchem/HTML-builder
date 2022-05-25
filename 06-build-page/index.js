@@ -3,14 +3,12 @@ const path = require('path');
 
 const projectDist = path.join(__dirname, 'project-dist');
 
-const styles = path.join(__dirname, 'styles');
-const createStyle = fs.createWriteStream(path.join(projectDist, 'style.css'));
+
 
 const currentAssets = path.join(__dirname, 'assets');
 const assetsDir = path.join(__dirname, 'project-dist', 'assets');
 
-const components = path.join(__dirname, 'components');
-const createIndex = fs.createWriteStream(path.join(projectDist, 'index.html'));
+
 
 fs.access(projectDist, fs.constants.F_OK, (error) => {
   console.log(`${projectDist} ${error ? 'not exist' : 'exist'}`);
@@ -24,6 +22,9 @@ fs.access(projectDist, fs.constants.F_OK, (error) => {
 });
 
 function createStyleCss() {
+  const styles = path.join(__dirname, 'styles');
+  const createStyle = fs.createWriteStream(path.join(projectDist, 'style.css'));
+
   fs.readdir(styles, { withFileTypes: true }, (error, result) => {
     if (error) return console.error(error.message);
     result.forEach(file => {
@@ -60,6 +61,9 @@ function createAssets(currentAssets, assetsDir) {
 }
 
 function createIndexHtml() {
+  const components = path.join(__dirname, 'components');
+  const createIndex = fs.createWriteStream(path.join(projectDist, 'index.html'));
+
   let newHtmlText = '';
   const readTemplate = fs.createReadStream(path.join(__dirname, 'template.html'));
   readTemplate.on('data', result => {
