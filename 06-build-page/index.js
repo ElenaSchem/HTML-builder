@@ -3,21 +3,16 @@ const path = require('path');
 
 const projectDist = path.join(__dirname, 'project-dist');
 
-
-
 const currentAssets = path.join(__dirname, 'assets');
 const assetsDir = path.join(__dirname, 'project-dist', 'assets');
 
-
-
-fs.access(projectDist, fs.constants.F_OK, (error) => {
-  console.log(`${projectDist} ${error ? 'not exist' : 'exist'}`);
+fs.rm(projectDist, { recursive: true }, () => {
   fs.mkdir(assetsDir, { recursive: true }, (error) => {
     if (error) return console.error(error.message);
     console.log('Project-dist created successfully');
+    createIndexHtml();
     createStyleCss();
     createAssets(currentAssets, assetsDir);
-    createIndexHtml();
   });
 });
 
@@ -40,10 +35,8 @@ function createStyleCss() {
 }
 
 function createAssets(currentAssets, assetsDir) {
-  fs.access(assetsDir, fs.constants.F_OK, (error) => {
-    console.log(`${assetsDir} ${error ? 'not exist' : 'exist'}`);
-    fs.mkdir(assetsDir, { recursive: true }, (error) => {
-      if (error) return console.error(error.message);
+  fs.rm(assetsDir, { recursive: true }, () => {
+    fs.mkdir(assetsDir, { recursive: true }, () => {
       fs.readdir(currentAssets, { withFileTypes: true }, (error, result) => {
         if (error) return console.error(error.message);
         result.forEach(file => {
@@ -62,20 +55,21 @@ function createAssets(currentAssets, assetsDir) {
 
 function createIndexHtml() {
   const components = path.join(__dirname, 'components');
-  const createIndex = fs.createWriteStream(path.join(projectDist, 'index.html'));
-
-  let newHtmlText = '';
+  const projectHTML = path.join(projectDist, 'index.html');
   const readTemplate = fs.createReadStream(path.join(__dirname, 'template.html'));
+  
+  let newHtmlText = '';
   readTemplate.on('data', result => {
-    newHtmlText = result.toString();
+    newHtmlText += result;
     fs.readdir(components, { withFileTypes: true }, (error, result) => {
       if (error) return console.error(error.message);
       result.forEach(file => {
         if (path.extname(file.name) === '.html') {
           fs.readFile(path.join(components, file.name), (error, data) => {
             if (error) return console.error(error.message);
-            newHtmlText = newHtmlText.replace(`{{${file.name.slice(0, -5)}}}`, data.toString());
-            createIndex.write(newHtmlText);
+            newHtmlText = newHtmlText.replace(`{{${file.name.toString().split('.').slice(0, -1)}}}`, data);
+            const createIndex = fs.createWriteStream(projectHTML);
+            createIndex.write(`${newHtmlText}\n`);
           });
         }
       });
