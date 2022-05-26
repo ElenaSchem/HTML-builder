@@ -1,15 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const mainFolder = path.join(__dirname, 'secret-folder');
 
-fs.readdir(path.join(__dirname, 'secret-folder'), (error, files) => {
+fs.readdir(mainFolder, { withFileTypes: true }, (error, files) => {
   if (error) return console.error(error.message);
   for (let file of files) {
-    fs.stat(path.join(__dirname, 'secret-folder', file), (error, stats) => {
-      if (error) return console.error(error.message);
-      const name = path.basename(file, path.extname(file));
-      const ext = path.extname(file).slice(1);
-      const size = stats.size / 1000;
-      console.log(`${name} - ${ext} - ${size}kb`);
-    });
+    if (file.isFile()) {
+      fs.stat(mainFolder, file.name, (error, stats) => {
+        if (error) return console.error(error.message);
+        let name = path.basename(file.name, path.extname(file.name));
+        let ext = path.extname(file.name).slice(1);
+        let size = stats.size / 1000;
+        console.log(`${name} - ${ext} - ${size}kb`);
+      });
+    }
   }
 });
